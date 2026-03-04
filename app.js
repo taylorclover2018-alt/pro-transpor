@@ -407,7 +407,11 @@ document.querySelector('.theme-toggle').addEventListener('click', function() {
 gerarVeiculos(0, 0);
 gerarVeiculos(1, 0);
 
-// Service Worker
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
+// Event listeners para atualizar veículos quando a quantidade mudar
+document.querySelectorAll('.veiculo-qtd').forEach(input => {
+    input.addEventListener('change', function() {
+        let rota = this.dataset.rota;
+        let qtd = parseInt(this.value) || 0;
+        gerarVeiculos(parseInt(rota), qtd);
+    });
+});
