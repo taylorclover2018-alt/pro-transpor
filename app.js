@@ -1,172 +1,13 @@
-// ============================================
-// SISTEMA DE TRANSPORTE PRO - VERSÃO PREMIUM
-// ============================================
+// Variável global para o gráfico
+let grafico;
 
-// Variáveis Globais
-let graficoComparativo = null;
-let graficoDistribuicao = null;
-let historicoRateios = [];
-let veiculosCadastrados = [];
-
-// ============================================
-// INICIALIZAÇÃO
-//============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Carregar dados salvos (se existirem)
-    carregarHistorico();
-    carregarVeiculos();
-    
-    // Inicializar data atual
-    atualizarDataAtual();
-    
-    // Inicializar datepicker
-    if (document.querySelector('.datepicker')) {
-        flatpickr('.datepicker', {
-            locale: 'pt',
-            dateFormat: 'd/m/Y',
-            defaultDate: null // Sem data padrão
-        });
-    }
-    
-    // Inicializar dashboards
-    atualizarDashboard();
-    
-    // Inicializar tabela de recentes
-    atualizarTabelaRecente();
-    
-    // Inicializar listeners
-    inicializarListeners();
-    
-    // Atualizar contadores de alunos
-    atualizarContadoresAlunos();
-});
-
-function inicializarListeners() {
-    // Theme toggle
-    document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
-    
-    // Menu toggle (mobile)
-    document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
-    
-    // Navegação
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.dataset.page;
-            mudarPagina(page);
-        });
-    });
-    
-    // Inputs de alunos
-    document.querySelectorAll('.aluno-input').forEach(input => {
-        input.addEventListener('input', atualizarContadoresAlunos);
-    });
-    
-    // Chart period
-    document.getElementById('chartPeriod')?.addEventListener('change', function() {
-        atualizarGraficos();
-    });
-}
-
-// ============================================
-// FUNÇÕES DE TEMA E INTERFACE
-// ============================================
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    const icon = document.querySelector('.theme-toggle i');
-    if (document.body.classList.contains('dark-theme')) {
-        icon.className = 'fas fa-sun';
-        localStorage.setItem('theme', 'dark');
-    } else {
-        icon.className = 'fas fa-moon';
-        localStorage.setItem('theme', 'light');
-    }
-}
-
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
-}
-
-function mudarPagina(pagina) {
-    // Atualizar active na navegação
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.dataset.page === pagina) {
-            item.classList.add('active');
-        }
-    });
-    
-    // Atualizar página visível
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    document.getElementById(`${pagina}-page`).classList.add('active');
-    
-    // Atualizar título
-    const titles = {
-        'dashboard': 'Dashboard',
-        'rateio': 'Rateio',
-        'historico': 'Histórico',
-        'veiculos': 'Veículos',
-        'relatorios': 'Relatórios',
-        'configuracoes': 'Configurações'
-    };
-    document.getElementById('page-title').textContent = titles[pagina];
-    
-    // Atualizar conteúdo específico da página
-    if (pagina === 'dashboard') {
-        atualizarDashboard();
-    } else if (pagina === 'historico') {
-        atualizarTabelaHistorico();
-    } else if (pagina === 'veiculos') {
-        atualizarGridVeiculos();
-    }
-}
-
-function mostrarToast(mensagem, tipo = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    const icon = toast.querySelector('i');
-    
-    toastMessage.textContent = mensagem;
-    
-    if (tipo === 'success') {
-        icon.className = 'fas fa-check-circle';
-        toast.style.background = 'linear-gradient(135deg, #06d6a0 0%, #05b588 100%)';
-    } else if (tipo === 'error') {
-        icon.className = 'fas fa-exclamation-circle';
-        toast.style.background = 'linear-gradient(135deg, #ef476f 0%, #d43f63 100%)';
-    } else if (tipo === 'warning') {
-        icon.className = 'fas fa-exclamation-triangle';
-        toast.style.background = 'linear-gradient(135deg, #ffd166 0%, #ffb347 100%)';
-    }
-    
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-function atualizarDataAtual() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const today = new Date().toLocaleDateString('pt-BR', options);
-    document.getElementById('currentDate').textContent = today;
-}
-
-// ============================================
-// FUNÇÕES DE VEÍCULOS
-// ============================================
-
+// Função para gerar os cards de veículos
 function gerarVeiculos(rota, qtd) {
     let container = document.getElementById("veiculos" + rota);
     container.innerHTML = "";
     
     if (qtd === 0 || qtd === null || qtd === '') {
-        container.innerHTML = '<p class="empty-message small">Nenhum veículo adicionado</p>';
-        document.getElementById(`totalVeiculos${rota}`).textContent = '0';
+        container.innerHTML = '<p class="empty-message">Nenhum veículo adicionado</p>';
         return;
     }
     
@@ -194,11 +35,9 @@ function gerarVeiculos(rota, qtd) {
         
         container.appendChild(veiculoDiv);
     }
-    
-    // Atualizar contador de veículos
-    document.getElementById(`totalVeiculos${rota}`).textContent = qtd;
 }
 
+// Função para calcular total da rota
 function calcularTotalRota(rota) {
     let container = document.getElementById("veiculos" + rota);
     let veiculos = container.querySelectorAll(".veiculo-card");
@@ -216,10 +55,7 @@ function calcularTotalRota(rota) {
     return total;
 }
 
-// ============================================
-// FUNÇÕES DE CÁLCULO
-// ============================================
-
+// Função principal de cálculo
 function calcular() {
     // Verificar se há veículos
     let veiculos0 = document.querySelectorAll('#veiculos0 .veiculo-card').length;
@@ -230,67 +66,348 @@ function calcular() {
         return;
     }
     
-    // Cálculos principais
-    let bruto0 = calcularTotalRota(0);
-    let bruto1 = calcularTotalRota(1);
-    let brutoGeral = bruto0 + bruto1;
+    // Mostrar loading nos botões
+    const btnCalcular = document.querySelector('.btn-primary');
+    const originalText = btnCalcular.innerHTML;
+    btnCalcular.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculando...';
+    
+    setTimeout(() => {
+        // Cálculos principais
+        let bruto0 = calcularTotalRota(0);
+        let bruto1 = calcularTotalRota(1);
+        let brutoGeral = bruto0 + bruto1;
 
-    let auxTotal = parseFloat(document.getElementById("auxilioTotal").value) || 0;
+        let auxTotal = parseFloat(document.getElementById("auxilioTotal").value) || 0;
 
-    let passagens0 = parseFloat(document.getElementById("passagens0").value) || 0;
-    let passagens1 = parseFloat(document.getElementById("passagens1").value) || 0;
+        let passagens0 = parseFloat(document.getElementById("passagens0").value) || 0;
+        let passagens1 = parseFloat(document.getElementById("passagens1").value) || 0;
 
-    // Rateio do auxílio
-    let aux0 = brutoGeral > 0 ? (bruto0 / brutoGeral) * auxTotal : 0;
-    let aux1 = brutoGeral > 0 ? (bruto1 / brutoGeral) * auxTotal : 0;
+        // Rateio do auxílio
+        let aux0 = brutoGeral > 0 ? (bruto0 / brutoGeral) * auxTotal : 0;
+        let aux1 = brutoGeral > 0 ? (bruto1 / brutoGeral) * auxTotal : 0;
 
-    let rateio0 = bruto0 - aux0 - passagens0;
-    let rateio1 = bruto1 - aux1 - passagens1;
+        let rateio0 = bruto0 - aux0 - passagens0;
+        let rateio1 = bruto1 - aux1 - passagens1;
 
-    let integral0 = parseInt(document.getElementById("integral0").value) || 0;
-    let desc0 = parseInt(document.getElementById("desc0").value) || 0;
+        let integral0 = parseInt(document.getElementById("integral0").value) || 0;
+        let desc0 = parseInt(document.getElementById("desc0").value) || 0;
 
-    let integral1 = parseInt(document.getElementById("integral1").value) || 0;
-    let desc1 = parseInt(document.getElementById("desc1").value) || 0;
+        let integral1 = parseInt(document.getElementById("integral1").value) || 0;
+        let desc1 = parseInt(document.getElementById("desc1").value) || 0;
 
-    let peso0 = integral0 + (desc0 * 0.5);
-    let peso1 = integral1 + (desc1 * 0.5);
+        let peso0 = integral0 + (desc0 * 0.5);
+        let peso1 = integral1 + (desc1 * 0.5);
 
-    let valorInt0 = peso0 > 0 ? rateio0 / peso0 : 0;
-    let valorDesc0 = valorInt0 / 2;
+        let valorInt0 = peso0 > 0 ? rateio0 / peso0 : 0;
+        let valorDesc0 = valorInt0 / 2;
 
-    let valorInt1 = peso1 > 0 ? rateio1 / peso1 : 0;
-    let valorDesc1 = valorInt1 / 2;
+        let valorInt1 = peso1 > 0 ? rateio1 / peso1 : 0;
+        let valorDesc1 = valorInt1 / 2;
 
-    // Atualizar tabela de resultado
-    let tbody = document.querySelector("#tabelaResultado tbody");
-    tbody.innerHTML = `
-        <tr>
-            <td><i class="fas fa-map-pin" style="color: #4361ee;"></i> 7 Lagoas</td>
-            <td>R$ ${bruto0.toFixed(2)}</td>
-            <td>R$ ${aux0.toFixed(2)}</td>
-            <td>R$ ${passagens0.toFixed(2)}</td>
-            <td class="destaque">R$ ${rateio0.toFixed(2)}</td>
-            <td>R$ ${valorInt0.toFixed(2)}</td>
-            <td>R$ ${valorDesc0.toFixed(2)}</td>
-        </tr>
-        <tr>
-            <td><i class="fas fa-map-pin" style="color: #06d6a0;"></i> Curvelo</td>
-            <td>R$ ${bruto1.toFixed(2)}</td>
-            <td>R$ ${aux1.toFixed(2)}</td>
-            <td>R$ ${passagens1.toFixed(2)}</td>
-            <td class="destaque">R$ ${rateio1.toFixed(2)}</td>
-            <td>R$ ${valorInt1.toFixed(2)}</td>
-            <td>R$ ${valorDesc1.toFixed(2)}</td>
-        </tr>
-    `;
+        // Atualizar tabela com animação
+        let tbody = document.querySelector("#tabelaResultado tbody");
+        tbody.style.opacity = '0';
+        
+        setTimeout(() => {
+            tbody.innerHTML = `
+                <tr>
+                    <td><i class="fas fa-map-pin" style="color: #4361ee;"></i> 7 Lagoas</td>
+                    <td class="valor">R$ ${bruto0.toFixed(2)}</td>
+                    <td class="valor">R$ ${aux0.toFixed(2)}</td>
+                    <td class="valor">R$ ${passagens0.toFixed(2)}</td>
+                    <td class="valor destaque">R$ ${rateio0.toFixed(2)}</td>
+                    <td class="valor">R$ ${valorInt0.toFixed(2)}</td>
+                    <td class="valor">R$ ${valorDesc0.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-map-pin" style="color: #06d6a0;"></i> Curvelo</td>
+                    <td class="valor">R$ ${bruto1.toFixed(2)}</td>
+                    <td class="valor">R$ ${aux1.toFixed(2)}</td>
+                    <td class="valor">R$ ${passagens1.toFixed(2)}</td>
+                    <td class="valor destaque">R$ ${rateio1.toFixed(2)}</td>
+                    <td class="valor">R$ ${valorInt1.toFixed(2)}</td>
+                    <td class="valor">R$ ${valorDesc1.toFixed(2)}</td>
+                </tr>
+            `;
+            tbody.style.opacity = '1';
+        }, 300);
 
-    // Mostrar preview do resultado
-    document.getElementById('resultadoPreview').style.display = 'block';
+        // Atualizar gráfico
+        if (grafico) grafico.destroy();
 
-    return {
-        rotas: [
-            { nome: '7 Lagoas', bruto: bruto0, auxilio: aux0, passagens: passagens0, rateio: rateio0, integral: valorInt0, meia: valorDesc0 },
-            { nome: 'Curvelo', bruto: bruto1, auxilio: aux1, passagens: passagens1, rateio: rateio1, integral: valorInt1, meia: valorDesc1 }
-        ],
-        totalGeral: bruto
+        const ctx = document.getElementById("graficoRateio").getContext("2d");
+        grafico = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["7 Lagoas", "Curvelo"],
+                datasets: [
+                    {
+                        label: "Total a Ratear (R$)",
+                        data: [rateio0, rateio1],
+                        backgroundColor: [
+                            "rgba(67, 97, 238, 0.8)",
+                            "rgba(6, 214, 160, 0.8)"
+                        ],
+                        borderColor: [
+                            "#4361ee",
+                            "#06d6a0"
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barPercentage: 0.6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'white',
+                        titleColor: '#2b2d42',
+                        bodyColor: '#6c757d',
+                        borderColor: '#e9ecef',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return `R$ ${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Mostrar toast de sucesso
+        mostrarToast('Cálculo realizado com sucesso!');
+
+        // Restaurar botão
+        btnCalcular.innerHTML = originalText;
+    }, 500);
+}
+
+// Função para gerar PDF melhorado
+async function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // Configurar cores
+    const primaryColor = [67, 97, 238];
+    const secondaryColor = [6, 214, 160];
+    const darkColor = [43, 45, 66];
+
+    // Cabeçalho do PDF
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 297, 20, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Relatório Oficial - Transporte', 20, 13);
+
+    // Data
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    doc.text(`Gerado em: ${dataAtual}`, 250, 13);
+
+    // Coletar dados da tabela
+    let tabela = document.getElementById('tabelaResultado');
+    let dados = [];
+    let cabecalhos = [];
+
+    // Pegar cabeçalhos
+    let thead = tabela.querySelectorAll('thead th');
+    thead.forEach(th => cabecalhos.push(th.innerText));
+
+    // Pegar dados do corpo
+    let linhas = tabela.querySelectorAll('tbody tr');
+    linhas.forEach(linha => {
+        let linhaDados = [];
+        let colunas = linha.querySelectorAll('td');
+        colunas.forEach(td => linhaDados.push(td.innerText));
+        dados.push(linhaDados);
+    });
+
+    // Adicionar título da seção
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detalhamento do Rateio', 20, 35);
+
+    // Criar tabela estilizada
+    doc.autoTable({
+        head: [cabecalhos],
+        body: dados,
+        startY: 40,
+        theme: 'grid',
+        styles: {
+            fontSize: 10,
+            cellPadding: 5,
+            font: 'helvetica',
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1,
+        },
+        headStyles: {
+            fillColor: primaryColor,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        bodyStyles: {
+            textColor: darkColor,
+        },
+        columnStyles: {
+            0: { fontStyle: 'bold', fillColor: [245, 245, 245] }
+        },
+        alternateRowStyles: {
+            fillColor: [250, 250, 250]
+        }
+    });
+
+    // Adicionar gráfico
+    const canvas = document.getElementById('graficoRateio');
+    const canvasImage = canvas.toDataURL('image/png', 1.0);
+    
+    doc.addPage();
+    
+    // Cabeçalho da segunda página
+    doc.setFillColor(...secondaryColor);
+    doc.rect(0, 0, 297, 20, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('Visualização Gráfica', 20, 13);
+
+    // Adicionar imagem do gráfico
+    doc.addImage(canvasImage, 'PNG', 20, 30, 250, 120);
+
+    // Adicionar resumo
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumo Executivo', 20, 170);
+
+    // Calcular totais
+    let totalRateio = 0;
+    dados.forEach(linha => {
+        let valorRateio = linha[4]?.replace('R$', '').replace(',', '.').trim();
+        totalRateio += parseFloat(valorRateio) || 0;
+    });
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total rateado: R$ ${totalRateio.toFixed(2)}`, 20, 180);
+    doc.text(`Total de rotas: ${dados.length}`, 20, 187);
+    doc.text(`Gerado por: Sistema Premium Transporte`, 20, 194);
+
+    // Rodapé
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Documento gerado automaticamente - Válido como relatório oficial', 20, 280);
+
+    // Salvar PDF
+    doc.save('Relatorio_Transporte_Premium.pdf');
+    
+    mostrarToast('PDF gerado com sucesso!');
+}
+
+// Função para resetar tudo
+function resetarTudo() {
+    if (confirm('Tem certeza que deseja resetar todos os valores?')) {
+        document.getElementById('auxilioTotal').value = '';
+        
+        document.getElementById('integral0').value = '';
+        document.getElementById('desc0').value = '';
+        document.getElementById('passagens0').value = '';
+        
+        document.getElementById('integral1').value = '';
+        document.getElementById('desc1').value = '';
+        document.getElementById('passagens1').value = '';
+        
+        document.querySelectorAll('.veiculo-qtd').forEach(input => {
+            input.value = '0';
+            let rota = input.closest('.rota-card')?.dataset.rota;
+            if (rota !== undefined) {
+                gerarVeiculos(parseInt(rota), 0);
+            }
+        });
+        
+        // Limpar tabela
+        let tbody = document.querySelector("#tabelaResultado tbody");
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-table">Nenhum cálculo realizado</td></tr>';
+        
+        // Limpar gráfico
+        if (grafico) {
+            grafico.destroy();
+            grafico = null;
+        }
+        
+        mostrarToast('Valores resetados com sucesso!');
+    }
+}
+
+// Função para mostrar toast
+function mostrarToast(mensagem, tipo = 'success') {
+    const toast = document.getElementById('toast');
+    const toastSpan = toast.querySelector('span');
+    
+    toastSpan.textContent = mensagem;
+    
+    if (tipo === 'success') {
+        toast.style.background = 'linear-gradient(135deg, #06d6a0 0%, #05b588 100%)';
+    } else if (tipo === 'warning') {
+        toast.style.background = 'linear-gradient(135deg, #ffd166 0%, #ffb347 100%)';
+    }
+    
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Theme Toggle
+document.querySelector('.theme-toggle').addEventListener('click', function() {
+    document.body.classList.toggle('dark-theme');
+    const icon = this.querySelector('i');
+    if (document.body.classList.contains('dark-theme')) {
+        icon.className = 'fas fa-sun';
+    } else {
+        icon.className = 'fas fa-moon';
+    }
+});
+
+// Inicializar com zero veículos
+gerarVeiculos(0, 0);
+gerarVeiculos(1, 0);
+
+// Service Worker
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
