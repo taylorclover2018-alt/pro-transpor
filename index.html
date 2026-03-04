@@ -1,116 +1,661 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte Associação | Sistema Premium</title>
-    
-    <!-- Fontes e Ícones -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4361ee">
-    
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>TransportePro • Rateio</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Bibliotecas para exportação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ========== MENU LATERAL ========== */
+        .menu-lateral {
+            width: 260px;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+        }
+
+        .logo-area {
+            margin-bottom: 32px;
+            padding-left: 8px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-size: 14px;
+            display: block;
+            color: #94a3b8;
+            font-weight: 400;
+            background: none;
+            -webkit-text-fill-color: #94a3b8;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .menu-item i {
+            width: 24px;
+            font-size: 1.2rem;
+        }
+
+        .menu-item:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .menu-item.ativo {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .menu-item.ativo i {
+            color: white;
+        }
+
+        .user-info {
+            margin-top: auto;
+            padding: 16px 8px;
+            border-top: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        .user-details {
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: #4ade80;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .user-status i {
+            font-size: 8px;
+        }
+
+        /* ========== CONTEÚDO PRINCIPAL ========== */
+        .conteudo {
+            flex: 1;
+            padding: 32px 40px;
+            overflow-y: auto;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .cabecalho h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .cabecalho-data {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-weight: 500;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cabecalho-data i {
+            color: #2563eb;
+        }
+
+        /* ========== CARDS ========== */
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            margin-bottom: 24px;
+            border: 1px solid #e9eef2;
+        }
+
+        .card-titulo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-titulo i {
+            color: #2563eb;
+        }
+
+        /* Grid de campos */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .campo label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .campo input, .campo select {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            background: #f8fafc;
+            transition: 0.2s;
+        }
+
+        .campo input:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .campo input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .campo input[type="number"]::-webkit-inner-spin-button {
+            opacity: 0.5;
+        }
+
+        /* Veículos */
+        .veiculo-lista {
+            margin-top: 20px;
+        }
+
+        .veiculo-item {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .veiculo-item .campo {
+            margin: 0;
+        }
+
+        .btn-remover {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .btn-remover:hover {
+            background: #fee2e2;
+        }
+
+        .btn-adicionar {
+            background: #f1f5f9;
+            border: 1px dashed #94a3b8;
+            border-radius: 20px;
+            padding: 16px;
+            width: 100%;
+            color: #334155;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-adicionar:hover {
+            background: #e2e8f0;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        /* Botões */
+        .acoes {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primario {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 6px 14px rgba(37,99,235,0.3);
+        }
+
+        .btn-primario:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37,99,235,0.4);
+        }
+
+        .btn-secundario {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .btn-secundario:hover {
+            background: #e2e8f0;
+        }
+
+        /* Resultado */
+        .resultado-card {
+            background: #f0f9ff;
+            border-radius: 24px;
+            padding: 24px;
+            margin-top: 24px;
+            border: 1px solid #bae6fd;
+        }
+
+        .resultado-valores {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .resultado-item {
+            text-align: center;
+        }
+
+        .resultado-item .rotulo {
+            font-size: 14px;
+            color: #0369a1;
+            margin-bottom: 8px;
+        }
+
+        .resultado-item .valor {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0c4a6e;
+        }
+
+        /* Histórico */
+        .historico-lista {
+            margin-top: 16px;
+        }
+
+        .historico-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .historico-info {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .historico-info div {
+            font-size: 14px;
+        }
+
+        .historico-info strong {
+            color: #0f172a;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s;
+        }
+
+        .toast.success { border-left-color: #16a34a; }
+        .toast.error { border-left-color: #dc2626; }
+        .toast.info { border-left-color: #2563eb; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Utilitários */
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 24px; }
+        .mb-2 { margin-bottom: 12px; }
+    </style>
 </head>
 <body>
-    <div class="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <i class="fas fa-bus header-icon"></i>
-                    <h1>Fechamento Transporte</h1>
-                </div>
-                <div class="header-right">
-                    <span class="badge">Premium</span>
-                </div>
+    <!-- Menu Lateral -->
+    <aside class="menu-lateral">
+        <div class="logo-area">
+            <div class="logo">TransportePro<span>Premium</span></div>
+        </div>
+        <nav>
+            <div class="menu-item ativo" data-pagina="rateio">
+                <i class="fas fa-calculator"></i>
+                <span>Rateio</span>
             </div>
-            <p class="header-subtitle">Sistema profissional de rateio e gestão de transporte</p>
-        </header>
-
-        <div class="card card-premium auxilio-card">
-            <div class="card-header">
-                <i class="fas fa-hand-holding-usd"></i>
-                <h3>Configuração Geral</h3>
+            <div class="menu-item" data-pagina="historico">
+                <i class="fas fa-history"></i>
+                <span>Histórico</span>
             </div>
-            <div class="card-body">
-                <div class="input-group">
-                    <label for="auxilioTotal">
-                        <i class="fas fa-money-bill-wave"></i>
-                        Auxílio Total (R$)
-                    </label>
-                    <input type="number" id="auxilioTotal" step="0.01" min="0" placeholder="0,00">
-                </div>
+            <div class="menu-item" data-pagina="veiculos">
+                <i class="fas fa-truck"></i>
+                <span>Veículos</span>
+            </div>
+            <div class="menu-item" data-pagina="relatorios">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </div>
+            <div class="menu-item" data-pagina="config">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </div>
+        </nav>
+        <div class="user-info">
+            <div class="user-avatar">AD</div>
+            <div class="user-details">
+                <div class="user-name">Administrador</div>
+                <div class="user-status"><i class="fas fa-circle"></i> Online</div>
             </div>
         </div>
+    </aside>
 
-        <div class="rotas-container">
-            <!-- Rota 7 Lagoas -->
-            <div class="card card-premium rota-card" data-rota="0">
-                <div class="card-header">
-                    <div class="rota-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h3>Rota 7 Lagoas</h3>
+    <!-- Conteúdo Principal -->
+    <main class="conteudo" id="conteudo">
+        <!-- Será preenchido dinamicamente -->
+    </main>
+
+    <!-- Container para notificações -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // ========== ESTADO GLOBAL ==========
+        const state = {
+            paginaAtual: 'rateio',
+            historico: JSON.parse(localStorage.getItem('historico_rateio')) || [],
+            veiculosPadrao: [
+                { nome: 'Ônibus A', diaria: 150, qtdDiarias: 1 },
+                { nome: 'Micro-ônibus', diaria: 120, qtdDiarias: 1 },
+                { nome: 'Van', diaria: 100, qtdDiarias: 1 }
+            ],
+            ultimoCalculo: null
+        };
+
+        // ========== FUNÇÕES DE NOTIFICAÇÃO ==========
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            const container = document.getElementById('toast-container');
+            const id = 'toast_' + Date.now();
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            toast.id = id;
+            toast.innerHTML = `
+                <i class="fas ${tipo === 'success' ? 'fa-check-circle' : tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <span>${mensagem}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ========== FUNÇÕES DE PERSISTÊNCIA ==========
+        function salvarHistorico() {
+            localStorage.setItem('historico_rateio', JSON.stringify(state.historico));
+        }
+
+        // ========== FUNÇÕES DE RENDERIZAÇÃO ==========
+        function renderizarPagina() {
+            const conteudo = document.getElementById('conteudo');
+            const paginas = {
+                rateio: renderRateio,
+                historico: renderHistorico,
+                veiculos: renderVeiculos,
+                relatorios: renderRelatorios,
+                config: renderConfig
+            };
+            conteudo.innerHTML = paginas[state.paginaAtual]();
+
+            // Atualizar classe ativa no menu
+            document.querySelectorAll('.menu-item').forEach(item => {
+                const pagina = item.dataset.pagina;
+                if (pagina === state.paginaAtual) {
+                    item.classList.add('ativo');
+                } else {
+                    item.classList.remove('ativo');
+                }
+            });
+        }
+
+        // ========== TELA DE RATEIO ==========
+        function renderRateio() {
+            const hoje = new Date().toLocaleDateString('pt-BR');
+            return `
+                <div class="cabecalho">
+                    <h1>Rateio</h1>
+                    <div class="cabecalho-data">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${hoje}
                     </div>
-                    <span class="rota-badge">Norte</span>
                 </div>
-                
-                <div class="card-body">
-                    <div class="alunos-section">
-                        <h4><i class="fas fa-users"></i> Alunos</h4>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Integrais</label>
-                                <input type="number" id="integral0" min="0" placeholder="0">
-                            </div>
-                            <div class="input-group">
-                                <label>50%</label>
-                                <input type="number" id="desc0" min="0" placeholder="0">
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="passagens-section">
-                        <h4><i class="fas fa-ticket-alt"></i> Passagens</h4>
-                        <div class="input-group">
-                            <label>Valor arrecadado (R$)</label>
-                            <input type="number" id="passagens0" step="0.01" min="0" placeholder="0,00">
-                        </div>
+                <div class="card">
+                    <div class="card-titulo">
+                        <i class="fas fa-sliders-h"></i> Configuração Geral
                     </div>
-
-                    <div class="veiculos-section">
-                        <div class="veiculos-header">
-                            <h4><i class="fas fa-truck"></i> Veículos</h4>
-                            <div class="veiculos-control">
-                                <label>Quantidade:</label>
-                                <input type="number" min="0" value="0" class="veiculo-qtd" onchange="gerarVeiculos(0,this.value)" placeholder="0">
-                            </div>
+                    <div class="grid-2">
+                        <div class="campo">
+                            <label>Auxílio Total (R$)</label>
+                            <input type="number" id="auxilioTotal" value="4000" step="0.01" min="0">
                         </div>
-                        <div id="veiculos0" class="veiculos-container">
-                            <p class="empty-message">Nenhum veículo adicionado</p>
+                        <div class="campo">
+                            <label>Descrição</label>
+                            <input type="text" id="descricao" placeholder="Ex: Rateio mensal - Maio/2024">
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Rota Curvelo -->
-            <div class="card card-premium rota-card" data-rota="1">
-                <div class="card-header">
-                    <div class="rota-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h3>Rota Curvelo</h3>
+                <div class="card">
+                    <div class="card-titulo">
+                        <i class="fas fa-users"></i> Alunos
                     </div>
-                    <span class="rota-badge">Sul</span>
+                    <div class="grid-3">
+                        <div class="campo">
+                            <label>Integrais</label>
+                            <input type="number" id="integrais" value="12" min="0">
+                        </div>
+                        <div class="campo">
+                            <label>50%</label>
+                            <input type="number" id="meia" value="2" min="0">
+                        </div>
+                        <div class="campo">
+                            <label>Passagens (R$)</label>
+                            <input type="number" id="passagens" value="0" step="0.01" min="0">
+                        </div>
+                    </div>
                 </div>
-                
+
+                <div class="card">
+                    <div class="card-titulo">
+                        <i class="fas fa-bus"></i> Veículos
+                    </div>
+                    <div id="veiculos-container" class="veiculo-lista">
+                        ${renderVeiculosLista()}
+                    </div>
+                    <button class="btn-adicionar" onclick="adicionarVeiculo()">
+                        <i class="fas fa-plus"></i> Adicionar veículo
+                    </button>
+                </div>
+
+                <div class="acoes">
+                    <button class="btn btn-secundario" onclick="limparFormulario()">
+                        <i class="fas fa-eraser"></i> Limpar
+                    </button>
+                    <button class="btn btn-primario" onclick="calcularRateio()">
+                        <i class="fas fa-calculator"></i> Calcular rateio
+                    </button>
+                </div>
+
+                <div id="resultado-area"></div>
+            `;
+        }
+
+        function renderVeiculosLista() {
+            // Pega os veículos do localStorage ou usa padrão
+            let veiculos = JSON.parse(localStorage.getItem('veiculos_temp')) || state.veiculosPadrao.map(v => ({ ...v }));
+            if (!veiculos.length) veiculos = [{ nome: 'Ônibus A', diaria: 150, qtdDiarias: 1 }];
+            return veiculos.map((v, index) => `
+                <div class="veiculo-item" data-index="${index}">
+                    <div class="campo">
+                        <label>Nome</label>
+                        <input type="text" class="veiculo-nome" value="${v.nome}" placeholder="Nome do veículo">
+                    </div>
+                    <div class="campo">
+                        <label>Diária (R$)</label>
+                        <input type="number" class="veiculo-diaria" value="${v.diaria}" step="0.01" min="0">
+                    </div>
+                    <div class="campo">
+                        <label>Nº Diárias</label>
+                        <input type="number" class="veiculo-qtd" value="${v.qtdDiarias}" min="1">
+                    </div>
+                    <button class="btn-remover" onclick="removerVeiculo(this)">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // ========== FUNÇÕES DE MANIPULAÇÃO DE VEÍCULOS ==========
+        function salvarVeiculosTemporarios() {
+            const itens = document.querySelectorAll('#veiculos-container .veiculo-item');
+            const veiculos = [];
+            itens.forEach(item => {
+                const nome = item.querySelector('.veiculo-nome')?.value || '';
+                const diaria = parseFloat(item.querySelector('.veiculo-diaria')?.value) || 0;
+                const qtd = parseInt(item.querySelector('.veiculo-qtd')?.value) || 1;
+                if (nome) veiculos.push({ nome, diaria, qtdDiarias: qtd });
+            });
+            localStorage.setItem('veiculos_temp', JSON.stringify(veiculos));
+        }
+
+                    
                 <div class="card-body">
                     <div class="alunos-section">
                         <h4><i class="fas fa-users"></i> Alunos</h4>
