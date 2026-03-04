@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transporte Pro | Sistema Inteligente de Rateio</title>
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4361ee">
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+    <div class="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bus sidebar-logo"></i>
+                <h2>Transporte<span>Pro</span></h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="rateio">
+                    <i class="fas fa-calculator"></i>
+                    <span>Rateio</span>
+                </a>
+                <a href="#" class="nav-item" data-page="historico">
+                    <i class="fas fa-history"></i>
+                    <span>Histórico</span>
+                </a>
+                <a href="#" class="nav-item" data-page="veiculos">
+                    <i class="fas fa-truck"></i>
+                    <span>Veículos</span>
+                </a>
+                <a href="#" class="nav-item" data-page="relatorios">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="#" class="nav-item" data-page="configuracoes">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p>Administrador</p>
+                        <small>Online</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                
+                <div class="top-bar-right">
+                    <div class="date-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">0</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Dashboard Page -->
+                <div class="page active" id="dashboard-page">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #4361ee20 0%, #4361ee40 100%)">
+                                <i class="fas fa-dollar-sign" style="color: #4361ee"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Rateado (Mês)</h3>
+                                <p class="stat-value" id="totalRateadoMes">R$ 0,00</p>
+                                <small class="stat-trend">
+                                    <i class="fas fa-minus"></i> Sem dados
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #06d6a020 0%, #06d6a040 100%)">
+                                <i class="fas fa-bus" style="color: #06d6a0"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Veículos Ativos</h3>
+                                <p class="stat-value" id="totalVeiculos">0</p>
+                                <small class="stat-trend">
+                                    <i class="fas fa-minus"></i> Sem dados
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #ef476f20 0%, #ef476f40 100%)">
+                                <i class="fas fa-users" style="color: #ef476f"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Alunos Transportados</h3>
+                                <p class="stat-value" id="totalAlunos">0</p>
+                                <small class="stat-trend">
+                                    <i class="fas fa-minus"></i> Sem dados
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #ffd16620 0%, #ffd16640 100%)">
+                                <i class="fas fa-chart-line" style="color: #ffd166"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Ticket Médio</h3>
+                                <p class="stat-value" id="ticketMedio">R$ 0,00</p>
+                                <small class="stat-trend">
+                                    <i class="fas fa-minus"></i> Sem dados
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="card premium-card">
+                            <div class="card-header">
+                                <h3>Comparativo por Rota</h3>
+                                <select id="chartPeriod" class="chart-select">
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30">Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                </select>
+                            </div>
+                            <div class="card-body">
+                                <div id="comparativoChart" class="empty-chart">
+                                    <p class="empty-message">Nenhum dado disponível</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card premium-card">
+                            <div class="card-header">
+                                <h3>Distribuição de Custos</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="distribuicaoChart" class="empty-chart">
+                                    <p class="empty-message">Nenhum dado disponível</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <div class="card premium-card">
+                            <div class="card-header">
+                                <h3>Últimos Rateios</h3>
+                                <a href="#" class="view-all" onclick="mudarPagina('historico')">Ver todos</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="premium-table" id="recentTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Rota</th>
+                                            <th>Total Rateado</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTableBody">
+                                        <tr>
+                                            <td colspan="4" class="empty-table">Nenhum rateio realizado</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rateio Page -->
+                <div class="page" id="rateio-page">
+                    <div class="card premium-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calculator"></i> Novo Rateio</h3>
+                            <div class="header-actions">
+                                <button class="btn btn-outline" onclick="salvarRascunho()">
+                                    <i class="fas fa-save"></i> Salvar Rascunho
+                                </button>
+                                <button class="btn btn-outline" onclick="carregarRascunho()">
+                                    <i class="fas fa-folder-open"></i> Carregar Rascunho
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="rateio-header">
+                                <div class="rateio-info">
+                                    <div class="input-group">
+                                        <label><i class="fas fa-calendar"></i> Data do Rateio</label>
+                                        <input type="text" id="rateioData" class="datepicker" placeholder="Selecione a data">
+                                    </div>
+                                    <div class="input-group">
+                                        <label><i class="fas fa-hand-holding-usd"></i> Auxílio Total (R$)</label>
+                                        <input type="number" id="auxilioTotal" value="" step="0.01" min="0" placeholder="0,00">
+                                    </div>
+                                    <div class="input-group">
+                                        <label><i class="fas fa-tag"></i> Descrição</label>
+                                        <input type="text" id="rateioDescricao" placeholder="Ex: Rateio mensal">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rotas-container">
+                                <!-- Rota 7 Lagoas -->
+                                <div class="rota-card modern" data-rota="0">
+                                    <div class="rota-header">
+                                        <div class="rota-title">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <h4>Rota 7 Lagoas</h4>
+                                        </div>
+                                        <div class="rota-stats">
+                                            <span class="rota-stat">
+                                                <i class="fas fa-users"></i>
+                                                <span id="totalAlunos0">0</span>
+                                            </span>
+                                            <span class="rota-stat">
+                                                <i class="fas fa-truck"></i>
+                                                <span id="totalVeiculos0">0</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="rota-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <label>Alunos Integrais</label>
+                                                    <input type="number" id="integral0" value="" min="0" class="aluno-input" data-rota="0" data-tipo="integral" placeholder="0">
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <label>Alunos 50%</label>
+                                                    <input type="number" id="desc0" value="" min="0" class="aluno-input" data-rota="0" data-tipo="desc" placeholder="0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-group">
+                                            <label>Passagens Arrecadadas (R$)</label>
+                                            <input type="number" id="passagens0" value="" step="0.01" min="0" placeholder="0,00">
+                                        </div>
+
+                                        <div class="veiculos-section">
+                                            <div class="veiculos-header">
+                                                <h5><i class="fas fa-truck"></i> Veículos</h5>
+                                                <div class="veiculos-control">
+                                                    <label>Qtd:</label>
+                                                    <input type="number" min="0" value="0" class="veiculo-qtd" onchange="gerarVeiculos(0,this.value)" placeholder="0">
+                                                </div>
+                                            </div>
+                                            <div id="veiculos0" class="veiculos-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rota Curvelo -->
+                                <div class="rota-card modern" data-rota="1">
+                                    <div class="rota-header">
+                                        <div class="rota-title">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <h4>Rota Curvelo</h4>
+                                        </div>
+                                        <div class="rota-stats">
+                                            <span class="rota-stat">
+                                                <i class="fas fa-users"></i>
+                                                <span id="totalAlunos1">0</span>
+                                            </span>
+                                            <span class="rota-stat">
+                                                <i class="fas fa-truck"></i>
+                                                <span id="totalVeiculos1">0</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="rota-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <label>Alunos Integrais</label>
+                                                    <input type="number" id="integral1" value="" min="0" class="aluno-input" data-rota="1" data-tipo="integral" placeholder="0">
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <label>Alunos 50%</label>
+                                                    <input type="number" id="desc1" value="" min="0" class="aluno-input" data-rota="1" data-tipo="desc" placeholder="0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-group">
+                                            <label>Passagens Arrecadadas (R$)</label>
+                                            <input type="number" id="passagens1" value="" step="0.01" min="0" placeholder="0,00">
+                                        </div>
+
+                                        <div class="veiculos-section">
+                                            <div class="veiculos-header">
+                                                <h5><i class="fas fa-truck"></i> Veículos</h5>
+                                                <div class="veiculos-control">
+                                                    <label>Qtd:</label>
+                                                    <input type="number" min="0" value="0" class="veiculo-qtd" onchange="gerarVeiculos(1,this.value)" placeholder="0">
+                                                </div>
+                                            </div>
+                                            <div id="veiculos1" class="veiculos-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="actions">
+                                <button class="btn btn-primary btn-large" onclick="calcularComHistorico()">
+                                    <i class="fas fa-calculator"></i>
+                                    Calcular e Salvar no Histórico
+                                </button>
+                                <button class="btn btn-secondary" onclick="calcular()">
+                                    <i class="fas fa-play"></i>
+                                    Calcular Apenas
+                                </button>
+                                <button class="btn btn-outline" onclick="exportarJSON()">
+                                    <i class="fas fa-download"></i>
+                                    Exportar Dados
+                                </button>
+                            </div>
+
+                            <!-- Resultado do Rateio -->
+                            <div class="resultado-preview" id="resultadoPreview" style="display: none;">
+                                <h4>Prévia do Resultado</h4>
+                                <table class="premium-table" id="tabelaResultado">
+                                    <thead>
+                                        <tr>
+                                            <th>Rota</th>
+                                            <th>Total Bruto</th>
+                                            <th>Auxílio</th>
+                                            <th>Passagens</th>
+                                            <th>Total a Ratear</th>
+                                            <th>Integral</th>
+                                            <th>50%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico Page -->
+                <div class="page" id="historico-page">
+                    <div class="card premium-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Histórico de Rateios</h3>
+                            <div class="header-actions">
+                                <button class="btn btn-outline" onclick="exportarHistoricoCSV()">
+                                    <i class="fas fa-file-csv"></i> Exportar CSV
+                                </button>
+                                <button class="btn btn-outline" onclick="limparHistorico()">
+                                    <i class="fas fa-trash"></i> Limpar Histórico
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="historico-filtros">
+                                <div class="input-group">
+                                    <label><i class="fas fa-search"></i> Buscar</label>
+                                    <input type="text" id="historicoBusca" placeholder="Descrição, rota...">
+                                </div>
+                                <div class="input-group">
+                                    <label><i class="fas fa-calendar"></i> Período</label>
+                                    <select id="historicoPeriodo">
+                                        <option value="all">Todos</option>
+                                        <option value="today">Hoje</option>
+                                        <option value="week">Esta semana</option>
+                                        <option value="month">Este mês</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="filtrarHistorico()">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                            </div>
+
+                            <table class="premium-table" id="historicoTable">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Descrição</th>
+                                        <th>Rota</th>
+                                        <th>Total Bruto</th>
+                                        <th>Auxílio</th>
+                                        <th>Passagens</th>
+                                        <th>Total Rateado</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historicoTableBody">
+                                    <tr>
+                                        <td colspan="8" class="empty-table">Nenhum rateio no histórico</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Veículos Page -->
+                <div class="page" id="veiculos-page">
+                    <div class="card premium-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-truck"></i> Gerenciar Veículos</h3>
+                            <button class="btn btn-primary" onclick="abrirModalVeiculo()">
+                                <i class="fas fa-plus"></i> Novo Veículo
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="veiculos-grid" id="veiculosGrid">
+                                <p class="empty-message">Nenhum veículo cadastrado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relatórios Page -->
+                <div class="page" id="relatorios-page">
+                    <div class="card premium-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-file-alt"></i> Relatórios</h3>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="relatorios-grid">
+                                <div class="relatorio-card" onclick="gerarRelatorioMensal()">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <h4>Relatório Mensal</h4>
+                                    <p>Resumo completo do mês</p>
+                                </div>
+                                <div class="relatorio-card" onclick="gerarRelatorioRotas()">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <h4>Relatório por Rotas</h4>
+                                    <p>Comparativo entre rotas</p>
+                                </div>
+                                <div class="relatorio-card" onclick="gerarRelatorioFinanceiro()">
+                                    <i class="fas fa-chart-line"></i>
+                                    <h4>Relatório Financeiro</h4>
+                                    <p>Análise de custos</p>
+                                </div>
+                                <div class="relatorio-card" onclick="gerarRelatorioVeiculos()">
+                                    <i class="fas fa-truck"></i>
+                                    <h4>Relatório de Veículos</h4>
+                                    <p>Desempenho por veículo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Veículo -->
+    <div class="modal" id="veiculoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Novo Veículo</h3>
+                <button class="modal-close" onclick="fecharModalVeiculo()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Nome do Veículo</label>
+                    <input type="text" id="veiculoNome" placeholder="Ex: Ônibus A">
+                </div>
+                <div class="input-group">
+                    <label>Placa</label>
+                    <input type="text" id="veiculoPlaca" placeholder="ABC-1234">
+                </div>
+                <div class="input-group">
+                    <label>Capacidade</label>
+                    <input type="number" id="veiculoCapacidade" placeholder="45">
+                </div>
+                <div class="input-group">
+                    <label>Rota Padrão</label>
+                    <select id="veiculoRota">
+                        <option value="0">7 Lagoas</option>
+                        <option value="1">Curvelo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModalVeiculo()">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarVeiculo()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
